@@ -1,18 +1,32 @@
 
 from django.core.validators import MinValueValidator
 from django.db import models
-
 from user.models import User
 
 
 class Tag(models.Model):
+    BLUE = '#0000FF'
+    ORANGE = '#FFA500'
+    GREEN = '#008000'
+    PURPLE = '#800080'
+    YELLOW = '#FFFF00'
+
+    COLOR_CHOICES = [
+        (BLUE, 'Синий'),
+        (ORANGE, 'Оранжевый'),
+        (GREEN, 'Зеленый'),
+        (PURPLE, 'Фиолетовый'),
+        (YELLOW, 'Желтый'),
+    ]
+
     name = models.CharField(
         'Название тега',
         max_length=200
     )
     color = models.CharField(
         'Цвет',
-        max_length=7
+        max_length=7,
+        choices=COLOR_CHOICES
     )
     slug = models.SlugField(
         'Адрес',
@@ -25,15 +39,15 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    measure = models.CharField(
+    measurement_unit = models.CharField(
         'Единица измерения',
-        on_delete=models.CASCADE,
-        max_length=30
+        max_length=30,
+        null=False
     )
     name = models.CharField(
         'Название ингредиента',
-        on_delete=models.CASCADE,
-        max_length=40
+        max_length=40,
+        null=False
     )
 
     class Meta:
@@ -71,11 +85,11 @@ class Recipe(models.Model):
         related_name='recipes'
 
     )
-    ingredients = models.models.ManyToMany(
+    ingredients = models.ManyToManyField(
         Ingredient,
-        through='IngredientQuanity',
+        through='QuanityRecepies',
         verbose_name='Ингредиенты',
-        related_name='recipes'
+        related_name='ingredients'
     )
     time = models.SmallIntegerField(
         'Время приготовления',
@@ -101,7 +115,7 @@ class Recipe(models.Model):
         return self.name
 
 
-class QuantityRecepies(models.Model):
+class QuanityRecepies(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -113,17 +127,19 @@ class QuantityRecepies(models.Model):
         on_delete=models.CASCADE,
         verbose_name='ингредиент',
         related_name='quanity')
-    quanity_s = models.PositiveSmallIntegerField(
+    quanity = models.PositiveSmallIntegerField(
         blank=False,
         null=False,
         verbose_name='Количество ингредиента'
     )
-    constraints = (
-            models.UniqueConstraint(
-                fields=('ingredient', 'recipe',),
-                name='unique ingredient quanity',
-            ),
-        )
+
+    class Meta:
+        constraints = (
+                models.UniqueConstraint(
+                    fields=('ingredient', 'recipe',),
+                    name='unique ingredient quanity',
+                ),
+            )
 
 
 class Favorite(models.Model):
@@ -147,3 +163,20 @@ class Favorite(models.Model):
             models.UniqueConstraint(fields=['user', 'recipe'],
                                     name='unique favorite')
         ]
+
+
+class ShoppingCart(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='users_shoping_cart',
+        verbose_name='владелец корзины'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name='purchase',
+        verbose_name='Покупка'
+    )
