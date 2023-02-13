@@ -1,12 +1,13 @@
 from django.contrib.auth import get_user_model
 from djoser.views import UserViewSet
-from recipes.pagination import LimitPageNumberPagination
-from recipes.serializers import FollowSerializer
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from api.pagination import LimitPageNumberPagination
 from user.models import Follow
 
 User = get_user_model()
@@ -63,3 +64,4 @@ class CustomUserViewSet(UserViewSet):
             context={'request': request}
         )
         return self.get_paginated_response(serializer.data)
+

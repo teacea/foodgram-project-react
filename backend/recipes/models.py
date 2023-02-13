@@ -1,7 +1,8 @@
 
 from django.core.validators import MinValueValidator
 from django.db import models
-from user.models import User
+
+from user.models import CustomUser
 
 
 class Tag(models.Model):
@@ -33,6 +34,9 @@ class Tag(models.Model):
         unique=True,
         max_length=200,
     )
+    class Meta:
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
 
     def __str__(self):
         return self.name
@@ -58,20 +62,19 @@ class Ingredient(models.Model):
             models.UniqueConstraint(fields=['name', 'measurement_unit'],
                                     name='unique ingredient')
         ]
-
+    def __str__(self):
+        return f'{self.name} {self.measurement_unit}'
 
 class Recipe(models.Model):
     author = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         verbose_name='Автор',
         related_name='recipes'
     )
     image = models.ImageField(
         'Картинка',
-        upload_to='photo',
-        blank=True,
-        null=True,
+        upload_to='recipe',
         help_text='Загрузите фотографию'
     )
     description = models.TextField(
@@ -91,7 +94,7 @@ class Recipe(models.Model):
         verbose_name='Ингредиенты',
         related_name='ingredients'
     )
-    time = models.SmallIntegerField(
+    cooking_time = models.SmallIntegerField(
         'Время приготовления',
         max_length=10,
         validators=(
@@ -140,11 +143,13 @@ class QuanityRecepies(models.Model):
                     name='unique ingredient quanity',
                 ),
             )
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
 
 
 class Favorite(models.Model):
     user = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='favorites_user',
         verbose_name='Пользователь',
@@ -158,7 +163,7 @@ class Favorite(models.Model):
 
     class Meta:
         verbose_name = 'Избранное'
-        verbose_name_plural = 'Избранные'
+        verbose_name_plural = 'Избранное'
         constraints = [
             models.UniqueConstraint(fields=['user', 'recipe'],
                                     name='unique favorite')
@@ -167,7 +172,7 @@ class Favorite(models.Model):
 
 class ShoppingCart(models.Model):
     user = models.OneToOneField(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='users_shoping_cart',
         verbose_name='владелец корзины'

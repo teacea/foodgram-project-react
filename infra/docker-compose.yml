@@ -8,11 +8,14 @@ services:
       - ./.env
 
   backend:
-    image: teacea/foodgram
+    build:
+      context: ../
+      dockerfile: backend/Dockerfile
     restart: always
     volumes:
-      - static_value:/app/backend_static/
-      - media_value:/app/backend_static/
+      - static_value:/app/static/django/
+      - media_value:/app/media/django/
+      # - redoc:/app/docs/
     depends_on:
       - db
     env_file:

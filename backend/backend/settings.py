@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'user.apps.UserConfig',
     'recipes.apps.RecipesConfig',
+    'api.apps.ApiConfig',
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
@@ -31,28 +32,23 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 6,
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     ),
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend'],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ],
 }
-
+AUTH_USER_MODEL = 'user.CustomUser'
 DJOSER = {
     'LOGIN_FIELD': 'email',
-    'HIDE_USERS': False,
-    'SERIALIZERS': {
-        'user_create': 'user.serializers.CustomUserCreateSerializer',
-        'user': 'user.serializers.CustomUserSerializer',
-        'current_user': 'user.serializers.CustomUserSerializer',
-    },
     'PERMISSIONS': {
-        'user': ('rest_framework.permissions.IsAuthenticated',),
-        'user_list': ('rest_framework.permissions.AllowAny',)
-    }
+            'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
+            'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+        },
+    'HIDE_USERS': False,
 }
 
 MIDDLEWARE = [
@@ -124,19 +120,19 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'Ru-ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
 USE_TZ = True
 
 ROOT_URLCONF = 'backend.urls'
-STATIC_URL = "/backend_static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "backend_static")
-MEDIA_URL = '/backend_media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'backend_media')
+STATIC_URL = '/static/django/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static', 'django')
+MEDIA_URL = '/media/django/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media', 'django')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

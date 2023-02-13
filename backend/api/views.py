@@ -1,17 +1,24 @@
+from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from recipes.models import (Favorite, Ingredient, QuanityRecepies, Recipe,
+                            ShoppingCart, Tag)
+from user.models import Follow
+
 from .filters import AuthorAndTagFilter, IngredientSearchFilter
-from .models import (Favorite, Ingredient, QuanityRecepies, Recipe,
-                     ShoppingCart, Tag)
 from .pagination import LimitPageNumberPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from .serializers import (CropRecipeSerializer, IngredientSerializer,
+from .serializers import (CreateRecipeSerializer, CropRecipeSerializer,
+                          FollowSerializer, IngredientSerializer,
                           RecipeSerializer, TagSerializer)
 
 
@@ -19,11 +26,13 @@ class TagViewSet(ReadOnlyModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
     
 
 class IngredientsViewSet(ReadOnlyModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
     filter_backends = (IngredientSearchFilter,)
     search_fields = ('^name',)
 
@@ -31,22 +40,27 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     pagination_class = LimitPageNumberPagination
-    filter_class = AuthorAndTagFilter
-    permission_classes = [IsAuthorOrReadOnly]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = AuthorAndTagFilter
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return RecipeSerializer
+        return CreateRecipeSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
     
-    @action(detail=True, methods=['get','delete'],
-            permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=['POST','DELETE'],
+            permission_classes=(IsAuthenticated,),)
     def favorite(self, request, pk=None):
-        if request.method == 'GET':
+        if request.method == 'POST':
             return self.add_obj(Favorite, request.user, pk)
         if request.method == 'DELETE':
             return self.delete_obj(Favorite, request.user, pk)
         return None
 
-    @action(detail=True, methods=['get','delete'],
+    @action(detail=True, methods=['GET','DELETE'],
             permission_classes=[IsAuthenticated])
     def cart(self, request, pk=None):
         if request.method == 'GET':
