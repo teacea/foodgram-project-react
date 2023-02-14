@@ -3,21 +3,24 @@ from django.db import models
 
 
 class CustomUser(AbstractUser):
+    username = models.CharField(
+        'Логин',
+        max_length=150,
+        unique=True,
+    )
     email = models.EmailField(
+        'Email',
         max_length=254,
         unique=True,
-        blank=False,
     )
     first_name = models.CharField(
+        'Имя',
         max_length=150,
-        blank=False,
     )
     last_name = models.CharField(
+        'Фамилия',
         max_length=150,
-        blank=False,
     )
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'username']
 
     class Meta:
         ordering = ['id']
@@ -30,29 +33,4 @@ class CustomUser(AbstractUser):
         ]
 
     def __str__(self):
-        return self.email
-
-
-class Follow(models.Model):
-    user = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name='follower',
-        verbose_name='Подписчик'
-    )
-    author = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name='following',
-        verbose_name='Объект подписки'
-    )
-
-    class Meta:
-        ordering = ['author']
-        verbose_name = 'подписки'
-        constraints = [
-            models.UniqueConstraint(fields=['user', 'author'], name='follow')
-        ]
-
-    def __str__(self):
-        return self.text[:15]
+        return f'{self.username}, {self.email}'

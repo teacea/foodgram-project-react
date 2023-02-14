@@ -1,11 +1,11 @@
 from django.contrib import admin
 
-from .models import Favorite, Ingredient, QuanityRecepies, Recipe, Tag
+from .models import Subscribe, Ingredient, QuanityRecepies, Recipe, Tag, FavoriteRecipe
 
 
 class QuanityRecepiesAdmin(admin.StackedInline):
     model = QuanityRecepies
-    autocomplete_fields = ('ingredient',)
+    autocomplete_fields = ('ingredients',)
     min_num = 1
     extra = 0
 
@@ -17,7 +17,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Количество в избранных у пользователя')
     def added_to_favorites(self, obj):
-        return Favorite.objects.filter(recipe=obj).count()
+        return FavoriteRecipe.objects.filter(recipe=obj).count()
         
 
 
@@ -28,4 +28,4 @@ class IngredientsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Tag)
-admin.site.register(Favorite)
+admin.site.register(Subscribe)

@@ -77,12 +77,12 @@ class Recipe(models.Model):
         upload_to='recipe',
         help_text='Загрузите фотографию'
     )
-    description = models.TextField(
+    text = models.TextField(
         'Описание процесса приготовления',
         max_length=1000,
         help_text='Напишите свой рецепт здесь,ограничение-1000 символов'
     )
-    tag = models.ManyToManyField(
+    tags = models.ManyToManyField(
         Tag,
         verbose_name='Тег',
         related_name='recipes'
@@ -125,7 +125,7 @@ class QuanityRecepies(models.Model):
         verbose_name='Рецепт',
         related_name='quanity'
     )
-    ingredient = models.ForeignKey(
+    ingredients = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
         verbose_name='ингредиент',
@@ -139,7 +139,7 @@ class QuanityRecepies(models.Model):
     class Meta:
         constraints = (
                 models.UniqueConstraint(
-                    fields=('ingredient', 'recipe',),
+                    fields=('ingredients', 'recipe',),
                     name='unique ingredient quanity',
                 ),
             )
@@ -147,7 +147,7 @@ class QuanityRecepies(models.Model):
         verbose_name_plural = 'Ингредиенты'
 
 
-class Favorite(models.Model):
+class Subscribe(models.Model):
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
@@ -170,6 +170,34 @@ class Favorite(models.Model):
         ]
 
 
+class FavoriteRecipe(models.Model):
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='favorite',
+        verbose_name='Пользователь'
+    )
+    favorite_recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorite_recipe',
+        verbose_name='Избранный рецепт'
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=('user', 'favorite_recipe'),
+                name='unique favourite')]
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранные'
+        ordering = ('id',)
+
+    def __str__(self):
+        return (f'Пользователь: {self.user.username}'
+                f'рецепт: {self.favorite_recipe.name}')
+
+
 class ShoppingCart(models.Model):
     user = models.OneToOneField(
         CustomUser,
@@ -185,3 +213,15 @@ class ShoppingCart(models.Model):
         related_name='purchase',
         verbose_name='Покупка'
     )
+    class Meta:
+        ordering = ('id',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('user', 'recipe'),
+                name='unique recipe in shopping cart')]
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Список покупок'
+
+    def __str__(self):
+        return (f'Пользователь: {self.user.username},'
+                f'рецепт в списке: {self.recipe.name}')
