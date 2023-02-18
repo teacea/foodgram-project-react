@@ -1,11 +1,12 @@
 from django.contrib import admin
 
-from .models import Subscribe, Ingredient, QuanityRecepies, Recipe, Tag, FavoriteRecipe
+from .models import (Subscribe, Ingredient, IngredientAmount,
+                     Recipe, Tag, FavoriteRecipe)
 
 
-class QuanityRecepiesAdmin(admin.StackedInline):
-    model = QuanityRecepies
-    autocomplete_fields = ('ingredients',)
+class IngredientAmountAdmin(admin.StackedInline):
+    model = IngredientAmount
+    autocomplete_fields = ('ingredient',)
     min_num = 1
     extra = 0
 
@@ -13,7 +14,7 @@ class QuanityRecepiesAdmin(admin.StackedInline):
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author', 'added_to_favorites')
     search_fields = ('name', 'author__email', 'tag__name')
-    inlines = (QuanityRecepiesAdmin,)
+    inlines = (IngredientAmountAdmin,)
 
     @admin.display(description='Количество в избранных у пользователя')
     def added_to_favorites(self, obj):

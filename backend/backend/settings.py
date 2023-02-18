@@ -15,6 +15,7 @@ DEBUG = os.path.join(BASE_DIR, 'DEBUG')
 
 ALLOWED_HOSTS = ['*']
 
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,7 +42,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ),
 }
-AUTH_USER_MODEL = 'user.CustomUser'
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'PERMISSIONS': {
@@ -142,3 +142,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #     'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
 #     'AUTH_HEADER_TYPES': ('Bearer',),
 # }
+AUTH_USER_MODEL = 'user.User'

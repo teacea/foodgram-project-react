@@ -8,9 +8,7 @@ services:
       - ./.env
 
   backend:
-    build:
-      context: ../
-      dockerfile: backend/Dockerfile
+    image: teacea/foodgram
     restart: always
     volumes:
       - static_value:/app/static/django/
