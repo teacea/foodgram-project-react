@@ -10,6 +10,7 @@ from user.models import Subscribe, User
 
 
 class CustomUserViewSet(UserViewSet):
+    '''Вьюсет для Юзера, содержит метод и старинцу подписки'''
     queryset = User.objects.all()
     serializer_class = GetUserSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
