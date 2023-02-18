@@ -1,9 +1,6 @@
-
-from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
-
-User = get_user_model()
+from user.models import User
 
 
 class Tag(models.Model):
@@ -35,6 +32,7 @@ class Tag(models.Model):
         unique=True,
         max_length=200,
     )
+
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
@@ -151,31 +149,6 @@ class IngredientAmount(models.Model):
                 f'{self.ingredient.measurement_unit} {self.ingredient.name}')
 
 
-class Subscribe(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='follower',
-        verbose_name='Пользователь',
-    )
-    author = models.ForeignKey(
-        User, models.CASCADE, related_name='following',
-        verbose_name='Автор'
-    )
-
-    class Meta:
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
-        constraints = [
-            models.UniqueConstraint(fields=['user', 'author'],
-                                    name='unique favorite')
-        ]
-
-    def __str__(self):
-        return (f'Пользователь: {self.user.username},'
-                f' автор: {self.author.username}')
-
-
 class FavoriteRecipe(models.Model):
     user = models.ForeignKey(
         User,
@@ -222,7 +195,6 @@ class ShoppingCart(models.Model):
 
     class Meta:
         ordering = ('id',)
-        
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Список покупок'
 

@@ -1,31 +1,25 @@
-from django.contrib.auth import get_user_model
-from django.http import HttpResponse
+from api.serializers import GetUserSerializer, SubscribeListSerializer
 from djoser.views import UserViewSet
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
+from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-from rest_framework.viewsets import ReadOnlyModelViewSet
-from django_filters.rest_framework import DjangoFilterBackend
-from api.filters import IngredientSearchFilter, RecipeFilter
-from recipes.models import (Ingredient, Recipe, ShoppingCart,
-                            Subscribe, Tag, FavoriteRecipe)
-from api.filters import RecipeFilter, IngredientSearchFilter
-from api.mixins import CreateDestroyViewSet
-from api.pagination import LimitPageNumberPagination
-from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from api.serializers import SubscribeListSerializer, GetUserSerializer
-                          
+from user.models import Subscribe, User
 
-User = get_user_model()
 
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = GetUserSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    @action(
+        permission_classes=(IsAuthenticated,),
+        url_path='subscribe',
+        methods=['POST', 'DELETE'],
+        detail=True
+    )
     def subscribe(self, request, **kwargs):
         user = request.user
         author_id = self.kwargs.get('id')

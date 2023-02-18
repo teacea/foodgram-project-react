@@ -1,7 +1,6 @@
 from django_filters import FilterSet, filters
-from rest_framework.filters import SearchFilter
-
 from recipes.models import Recipe, Tag
+from rest_framework.filters import SearchFilter
 
 
 class IngredientSearchFilter(SearchFilter):
@@ -33,4 +32,4 @@ class RecipeFilter(FilterSet):
         user = self.request.user
         if value and user.is_authenticated:
             return queryset.filter(purchase__user=user)
-        return 
+        return

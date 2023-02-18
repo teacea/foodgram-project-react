@@ -1,24 +1,18 @@
 
-from django.contrib.auth import get_user_model
-from django.db import transaction
-from django.db.models import F
-from django.contrib.auth.hashers import check_password
-from djoser.serializers import UserSerializer
-from drf_extra_fields.fields import Base64ImageField
-from rest_framework import serializers, status
-from rest_framework.exceptions import ValidationError
-from rest_framework.validators import UniqueTogetherValidator
-from django.shortcuts import get_object_or_404
 
 import base64
 import uuid
 
 from django.core.files.base import ContentFile
-
+from django.db import transaction
+from django.shortcuts import get_object_or_404
+from djoser.serializers import UserSerializer
+from drf_extra_fields.fields import Base64ImageField
 from recipes.models import (FavoriteRecipe, Ingredient, IngredientAmount,
-                            Recipe, ShoppingCart, Subscribe, Tag, )
-from user.models import User
-
+                            Recipe, ShoppingCart, Tag)
+from rest_framework import serializers, status
+from rest_framework.exceptions import ValidationError
+from user.models import Subscribe, User
 
 
 class GetUserSerializer(UserSerializer):
@@ -99,7 +93,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
         if user.is_authenticated:
-            return (FavoriteRecipe.objects.filter(user=user, 
+            return (FavoriteRecipe.objects.filter(user=user,
                     recipe_id=obj.id).exists())
         return False
 
@@ -190,7 +184,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             tags_list.append(tag)
         return value
 
-        
     @transaction.atomic
     def create_ingredients_amounts(self, ingredients, recipe):
         IngredientAmount.objects.bulk_create(
@@ -236,13 +229,12 @@ class SubscribeListSerializer(serializers.ModelSerializer):
     recipes = CropRecipeSerializer(many=True, read_only=True)
     recipes_count = serializers.SerializerMethodField()
 
-    class Meta:
-        class Meta(UserSerializer.Meta):
-            fields = UserSerializer.Meta.fields + (
-                'recipes', 'recipes_count'
-            )
-            read_only_fields = ('email', 'username',
-                                'first_name', 'last_name')
+    class Meta(GetUserSerializer.Meta):
+        fields = GetUserSerializer.Meta.fields + (
+            'recipes', 'recipes_count'
+        )
+        read_only_fields = ('email', 'username',
+                            'first_name', 'last_name')
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
@@ -262,4 +254,11 @@ class SubscribeListSerializer(serializers.ModelSerializer):
             )
         return attrs
 
-
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        limit = request.GET.get('recipes_limit')
+        recipes = obj.recipes.all()
+        if limit:
+            recipes = recipes[:int(limit)]
+        serializer = CropRecipeSerializer(recipes, many=True, read_only=True)
+        return serializer.data
