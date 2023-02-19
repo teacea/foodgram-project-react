@@ -46,9 +46,8 @@ class IngredientSerializer(serializers.ModelSerializer):
         model = Ingredient
 
 
-
 class IngredientAmountSerializer(serializers.ModelSerializer):
-    
+
     id = serializers.ReadOnlyField(
         source='ingredient.id',
     )
@@ -217,7 +216,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                                     context=context).data
 
 
-class SubscribeListSerializer(serializers.ModelSerializer):
+class SubscribeListSerializer(GetUserSerializer):
     '''Сериализатор для подписок'''
     recipes = CropRecipeSerializer(many=True, read_only=True)
     recipes_count = serializers.SerializerMethodField()

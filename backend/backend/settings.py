@@ -7,7 +7,6 @@ load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 SECRET_KEY = os.path.join(BASE_DIR, 'SECRET_KEY')
 
 
@@ -130,6 +129,8 @@ USE_TZ = True
 
 ROOT_URLCONF = 'backend.urls'
 STATIC_URL = '/static/django/'
+
+IMPORT_DATA_ADRESS = os.path.join(BASE_DIR, 'data')
 STATIC_ROOT = os.path.join(BASE_DIR, 'static', 'django')
 MEDIA_URL = '/media/django/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media', 'django')

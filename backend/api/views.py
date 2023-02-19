@@ -1,7 +1,8 @@
 from django.http import HttpResponse
+from .utils import create_txt
 from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import (FavoriteRecipe, Ingredient, Recipe, ShoppingCart,
-                            Tag)
+                            Tag, IngredientAmount)
 from django.db.models import Sum
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -40,7 +41,7 @@ class IngredientsViewSet(ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     pagination_class = LimitPageNumberPagination
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
+    permission_classes = (IsAdminOrReadOnly | IsAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
@@ -88,31 +89,26 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response({
             'errors': 'Рецепт уже удален'
         }, status=status.HTTP_400_BAD_REQUEST)
-        
+
     @action(
         detail=False,
-        permission_classes=[IsAuthenticated]
-    )
-    def download_shopping_cart(self, request):
+        methods=('get',),
+        url_path='download_shopping_cart',
+        pagination_class=None)
+    def download_file(self, request):
         user = request.user
-        if not ShoppingCart.objects.filter(user=user).exists():
-            return Response({'error': 'В корзине ничего нет!'},
-                            status=status.HTTP_400_BAD_REQUEST)
+        if not ShoppingCart.objects.filter(user_id=user.id).exists():
+            return Response(
+                'В корзине нет товаров', status=status.HTTP_400_BAD_REQUEST)
 
-        text = 'Список покупок:\n\n'
-        ingredient_name = 'recipe__recipe__ingredient__name'
-        ingredient_unit = 'recipe__recipe__ingredient__measurement_unit'
-        recipe_amount = 'recipe__recipe__amount'
-        amount_sum = 'recipe__recipe__amount__sum'
-        cart = user.shopping_cart.select_related('recipe').values(
-            ingredient_name, ingredient_unit).annotate(Sum(
-                recipe_amount)).order_by(ingredient_name)
-        for _ in cart:
-            text += (
-                f'{_[ingredient_name]} ({_[ingredient_unit]})'
-                f' — {_[amount_sum]}\n'
-            )
-        response = HttpResponse(text, content_type='text/plain')
-        filename = 'shopping_list.txt'
+        ingredients = IngredientAmount.objects.filter(
+            recipe__purchase__user=user
+        )
+        ingredients_value = ingredients.values(
+            'ingredient__name',
+            'ingredient__measurement_unit',
+        ).annotate(amount=Sum('amount'))
+        ready_list, filename = create_txt(user, ingredients_value)
+        response = HttpResponse(ready_list, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename={filename}'
         return response
