@@ -161,8 +161,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             ingredients_list.append(ingredient)
         return value
 
-    def validate_tags(self, value):
-        tags = value
+    def validate_tags(self, tags):
         if not tags:
             raise ValidationError({
                 'tags': 'Нужно выбрать хотя бы один тег!'
@@ -174,9 +173,9 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                     'tags': 'Теги должны быть уникальными!'
                 })
             tags_list.append(tag)
-        return value
+        return tags
 
-    @transaction.atomic
+    
     def create_ingredients_amounts(self, ingredients, recipe):
         IngredientAmount.objects.bulk_create(
             [IngredientAmount(
@@ -186,7 +185,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             ) for ingredient in ingredients]
         )
 
-    @transaction.atomic
+    
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
@@ -196,7 +195,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                                         ingredients=ingredients)
         return recipe
 
-    @transaction.atomic
+    
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
@@ -218,7 +217,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
 class SubscribeListSerializer(GetUserSerializer):
     '''Сериализатор для подписок'''
-    recipes = CropRecipeSerializer(many=True, read_only=True)
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta(GetUserSerializer.Meta):
@@ -249,7 +248,7 @@ class SubscribeListSerializer(GetUserSerializer):
     def get_recipes(self, obj):
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
-        recipes = obj.recipes.all()
+        recipes = obj.recipes.all()[:3]
         if limit:
             recipes = recipes[:int(limit)]
         serializer = CropRecipeSerializer(recipes, many=True, read_only=True)

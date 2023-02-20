@@ -44,13 +44,11 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     measurement_unit = models.CharField(
         'Единица измерения',
-        max_length=30,
-        null=False
+        max_length=30
     )
     name = models.CharField(
         'Название ингредиента',
         max_length=40,
-        null=False
     )
 
     class Meta:
@@ -97,7 +95,8 @@ class Recipe(models.Model):
     )
     cooking_time = models.SmallIntegerField(
         'Время приготовления',
-        max_length=10,
+        #5 дней=7200 мин, этого вполне достаточно для приговления
+        max_length=4,
         validators=(
             MinValueValidator(
                 1, message='Время должно быть больше 1 минуты'),)
@@ -132,8 +131,6 @@ class IngredientAmount(models.Model):
         verbose_name='ингредиент',
         related_name='quanity')
     amount = models.PositiveSmallIntegerField(
-        blank=False,
-        null=False,
         verbose_name='Количество ингредиента',
         validators=[
             MinValueValidator(1, message='Минимальное значение 1')
@@ -187,8 +184,6 @@ class ShoppingCart(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        blank=True,
-        null=True,
         related_name='purchase',
         verbose_name='Покупка'
     )
@@ -197,6 +192,10 @@ class ShoppingCart(models.Model):
         ordering = ('id',)
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Список покупок'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('user', 'recipe'),
+                name='unique cart')]
 
     def __str__(self):
         return (f'Пользователь: {self.user.username},'
