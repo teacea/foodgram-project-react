@@ -1,4 +1,4 @@
 ip 51.250.89.191
 user reviewer
 mail rewiev@mail.ru
-pass 575346834qQ.
+pass 123QWE123
