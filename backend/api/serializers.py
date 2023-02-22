@@ -248,10 +248,9 @@ class SubscribeListSerializer(GetUserSerializer):
     def get_recipes(self, obj):
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
-        if limit:
-            try:
-                recipes = recipes[:int(limit)]
-            except:
-                recipes = obj.recipes.all()[:3]
+        try:
+            recipes = recipes[:int(limit)]
+        except:
+            recipes = obj.recipes.all()[:3]
         serializer = CropRecipeSerializer(recipes, many=True, read_only=True)
         return serializer.data
