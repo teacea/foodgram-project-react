@@ -39,3 +39,26 @@ python manage.py migrate
 ```bash
 python manage.py runserver
 ```
+
+
+## Установка проекта с помощью Docker
+
+1. Скопируйте папку infra на свой сервер, создайте и заполните файл .env
+(можно использовать расширение 'GitZip for github' для Chrome либо скопировать весь проект)
+
+При необходимости, измените эти файлы под свой сервер
+
+2. Примените миграции и соберите статику
+```bash
+docker-compose exec infra-backend-1 python manage.py migrate
+docker-compose exec backend python manage.py collectstatic --noinput
+```
+
+3. Создайте суперпользователя
+```bash
+docker-compose exec backend python manage.py createsuperuser
+```
+
+Документация к api доступна по 
+http://ваш-ip/api/docs/
+
