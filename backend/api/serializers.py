@@ -1,5 +1,3 @@
-
-
 import base64
 import uuid
 
@@ -141,39 +139,45 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         fields = ('ingredients', 'tags', 'image', 'name',
                   'text', 'cooking_time', 'id', 'author')
 
-    def validate_ingredients(self, value):
-        ingredients = value
-        if not ingredients:
-            raise ValidationError({
-                'ingredients': 'Нужен хотя бы один ингредиент!'
-            })
-        ingredients_list = []
-        for item in ingredients:
-            ingredient = get_object_or_404(Ingredient, id=item['id'])
-            if ingredient in ingredients_list:
-                raise ValidationError({
-                    'ingredients': 'Ингридиенты не могут повторяться!'
-                })
-            if int(item['amount']) <= 0:
-                raise ValidationError({
-                    'amount': 'Количество ингредиента должно быть больше 0!'
-                })
-            ingredients_list.append(ingredient)
-        return value
-
-    def validate_tags(self, tags):
+    def validate(self, obj):
+        for field in ['name', 'text', 'cooking_time']:
+            if not obj.get(field):
+                raise serializers.ValidationError(
+                    f'{field} - Обязательное поле.'
+                )
+        tags = obj.get('tags')
+        ingredients = obj.get('ingredients')
         if not tags:
-            raise ValidationError({
-                'tags': 'Нужно выбрать хотя бы один тег!'
-            })
-        tags_list = []
+            raise serializers.ValidationError(
+                'Нужно указать минимум 1 тег.'
+            )
+        if not ingredients:
+            raise serializers.ValidationError(
+                'Нужно указать минимум 1 ингредиент.'
+            )
+        inrgedient_id_list = [item['id'] for item in ingredients]
+        unique_ingredient_id_list = set(inrgedient_id_list)
+        if len(inrgedient_id_list) != len(unique_ingredient_id_list):
+            raise serializers.ValidationError(
+                'Ингредиенты должны быть уникальны.'
+            )
+        array_ing = []
+        array_tag = []
+        for ingredient in ingredients:
+            if ingredient.get('amount') <= 0:
+                raise serializers.ValidationError(
+                    'Значение ингредиента должно быть больше 0')
+            array_ing.append(ingredient.get('id'))
+        if len(array_ing) != len(set(array_ing)):
+            raise serializers.ValidationError(
+                'Ингредиенты не должны повторяться')
         for tag in tags:
-            if tag in tags_list:
+            if tag in array_tag:
                 raise ValidationError({
                     'tags': 'Теги должны быть уникальными!'
                 })
-            tags_list.append(tag)
-        return tags
+            array_tag.append(tag)
+        return obj
 
     
     def create_ingredients_amounts(self, ingredients, recipe):

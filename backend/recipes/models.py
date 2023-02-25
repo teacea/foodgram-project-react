@@ -48,7 +48,7 @@ class Ingredient(models.Model):
     )
     name = models.CharField(
         'Название ингредиента',
-        max_length=40,
+        max_length=100,
     )
 
     class Meta:
